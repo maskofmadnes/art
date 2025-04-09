@@ -60,7 +60,7 @@ class Sidebar:
         )
         st.sidebar.number_input(
             self.t("click_frequency"),
-            value=660.0,
+            value=350.0,
             help=self.t("click_frequency_help"),
             step=10.0,
             key="click_freq",
