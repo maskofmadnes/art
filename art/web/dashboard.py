@@ -6,6 +6,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from scipy.stats import entropy
+from scipy.stats import mode
 
 
 class Dashboard:
@@ -14,7 +15,7 @@ class Dashboard:
 
     def t(self, key):
         return f"{self.td[key]}"
-        
+
     def render(self):
         st.title(self.t("title"))
         st.subheader(self.t("subtitle"))
@@ -42,6 +43,7 @@ class Dashboard:
                 hop_length=st.session_state.hop_length
             )
             onset_bpm = tempo.onset_bpm(dynamic_bpm, onset_times, time_tempo)
+            onset_bpm = trim_middle(onset_bpm, trim_percent=st.session_state.blowout / 100)
             intervals = tempo.intervals(onset_bpm, onset_times)
             dynamic_clicks = tempo.dynamic_clicks(
                 audio,
@@ -75,16 +77,21 @@ class Dashboard:
         twod_plot, threed_plot, nn, intervals_tab, onset_and_bpm, general = st.tabs([
             self.t("twod_plot"),
             self.t("threed_plot"),
-            self.t("nn"), 
+            self.t("nn"),
             self.t("intervals"),
             self.t("onset_and_bpm"),
             self.t("overview")])
         with twod_plot:
-            col_average, col_onset = st.columns(2, border=True)
+            time_diffs = np.diff(onset_times)
+            time_diffs = trim_middle(time_diffs, trim_percent=st.session_state.time_blowout / 100)
+            score = complexity_score(dynamic_bpm, intervals[-1][1], time_diffs)
+            col_average, col_onset, col_score = st.columns(3, border=True)
             with col_average:
-                st.write(f"{self.t("average")} BPM: {round(np.mean(dynamic_bpm), 2)}")
+                st.metric(f"{self.t("average")} BPM", round(np.mean(dynamic_bpm), 2))
             with col_onset:
-                st.write(f"{self.t("first_onset")}: {str(round(onset_times[0], 3)).replace(".", ",")}")
+                st.metric(self.t("first_onset"), str(round(onset_times[0], 3)).replace(".", ","))
+            with col_score:
+                st.metric(self.t("complexity_score") + " " + interpret_score(score)[0], score)
             with st.container(border=True):
                 x, y = onset_times, onset_bpm
                 data = {
@@ -100,27 +107,25 @@ class Dashboard:
                 )
                 # fig.update_traces(line=dict(color="#d85791"))
                 st.plotly_chart(fig)
-                
-            time_diffs = np.diff(onset_times)
             with st.container(border=True):
                 data = {
-                    "x": onset_times[1:],  
+                    "x": onset_times[1:],
                     "y": time_diffs,
                 }
                 fig = px.line(
                     data,
                     x="x",
                     y="y",
-                    title="time_intervals_between_onsets",
-                    labels={"x": self.t("time") + " (s)", "y": "intervals_between_onsets" + " (s)"},
+                    title=self.t("time_intervals_between_onsets"),
+                    labels={"x": self.t("time") + " (s)", "y": self.t("time_between_onsets") + " (s)"},
                 )
-                st.plotly_chart(fig) 
+                st.plotly_chart(fig)
         with threed_plot:
             with st.container(border=True):
                 x = np.array(onset_times)
                 y = np.array(onset_bpm)
                 z = np.diff(x, prepend=x[0])  # разница между onset_times
-            
+
                 fig = go.Figure(data=[go.Scatter3d(
                     x=x,
                     y=y,
@@ -129,14 +134,14 @@ class Dashboard:
                     marker=dict(size=4, color=z, colorscale='Viridis'),
                     line=dict(color='royalblue', width=2)
                 )])
-            
+
                 fig.update_layout(
                     scene=dict(
                         xaxis_title=self.t("time") + " (s)",
                         yaxis_title="BPM",
                         zaxis_title=self.t("intervals") + " (s)"
                     ),
-                    title="bpm dynamic 3d", #self.t("bpm_dynamic_3d"),
+                    title=self.t("three_plot"),
                     margin=dict(l=0, r=0, b=0, t=30)
                 )
                 st.plotly_chart(fig)
@@ -148,9 +153,9 @@ class Dashboard:
                 data["BPM"] += [str(round(bpm, 2))]
             st.table(data)
         with onset_and_bpm:
-            onset_bpm_table = {"Onset (s)": [], "BPM": []}
+            onset_bpm_table = {f"{self.t("onset")} (s)": [], "BPM": []}
             for time, bpm in zip(onset_times, onset_bpm):
-                onset_bpm_table["Onset (s)"] += [str(round(time, 3)).replace(".", ",")]
+                onset_bpm_table[f"{self.t("onset")} (s)"] += [str(round(time, 3)).replace(".", ",")]
                 onset_bpm_table["BPM"] += [str(round(bpm, 2))]
             st.table(onset_bpm_table)
         with general:
@@ -165,7 +170,6 @@ class Dashboard:
                     rhythmic_variance = self.t("high")
                 min_bpm = round(np.min(dynamic_bpm), 2)
                 max_bpm = round(np.max(dynamic_bpm), 2)
-                score = complexity_score(dynamic_bpm, intervals[-1][1])
                 description = interpret_score(score)
                 st.metric("Complexity Score", score)
                 st.write(description)
@@ -182,45 +186,26 @@ class Dashboard:
                 else:
                     st.info(self.t("no_track_cover"))
         with nn:
-            duration_sec = intervals[-1][1]
-            bpm_values = np.array(dynamic_bpm)
-            std_bpm = np.std(bpm_values)
-            # tempo_changes = len(segments)
-            tempo_changes = np.sum(np.abs(np.diff(bpm_values)) > 3)
-            change_rate = tempo_changes / duration_sec
-            jitter = np.sum(np.diff(np.sign(np.diff(bpm_values))) != 0) / len(bpm_values)
-            bpm_range = np.max(bpm_values) - np.min(bpm_values)
-            acceleration = bpm_range / duration_sec
-            local_var = local_variability(bpm_values)
-            entropy_val = bpm_entropy(bpm_values)
-            rhythmic_variability = np.mean(np.abs(np.diff(bpm_values)))
-            tempo_jumps_threshold = 5  # Порог для скачков темпа
-            tempo_jumps = np.sum(np.abs(np.diff(bpm_values)) > tempo_jumps_threshold)
-            
-            stdk, stdc = 0.2 * std_bpm, std_bpm
-            crk, crc = 0.15 * change_rate * 10, change_rate
-            jk, jc = 0.15 * jitter * 10, jitter
-            brk, brc = 0.05 * bpm_range / 10, bpm_range
-            ak, ac = 0.1 * abs(acceleration), acceleration
-            lvk, lvc = 0.1 * local_var, local_var
-            evk, evc = 0.1 * entropy_val * 10, entropy_val
-            rvk, rvc = 0.15 * rhythmic_variability, rhythmic_variability
-            tjk, tjc = 0.05 * tempo_jumps, tempo_jumps
-            st.write("std_bpm", stdk, stdc)
-            st.write("change_rate", crk, crc)
-            st.write("jitter", jk, jc)
-            st.write("bpm_range", brk, brc)
-            st.write("acceleration", ak, ac)
-            st.write("local_ver", lvk, lvc)
-            st.write("entorpoy_val", evk, evc)
-            st.write("rhythmic_variability", rvk, rvc)
-            st.write("tempo_jumps", tjk, tjc)
-            st.metric("Scorek", stdk + crk + jk + brk + ak + lvk + evk + rvk + tjk)
-            st.metric("Scorec", stdc + crc + jc + brc + ac + lvc + evc + rvc + tjc)
+            st.write("In development")
 
+def trim_middle(x, trim_percent=0.25):
+    if trim_percent <= 0.0:
+        return x
+    x = np.array(x, dtype=float)
+    lower = np.percentile(x, 100 * trim_percent)
+    upper = np.percentile(x, 100 * (1 - trim_percent))
+    mask = (x >= lower) & (x <= upper)
+    if np.any(mask):
+        most_common = mode(x[mask], keepdims=True).mode[0]
+    else:
+        most_common = np.mean(x) 
+    x[~mask] = most_common
+    return x
 
-def complexity_score(bpm_values, duration_sec):
+def complexity_score(bpm_values, duration_sec, time_diffs):
     bpm_values = np.array(bpm_values)
+    time_diffs = np.array(time_diffs)
+    std_time = np.std(time_diffs)
     std_bpm = np.std(bpm_values)
     tempo_changes = np.sum(np.abs(np.diff(bpm_values)) > 3)
     change_rate = tempo_changes / duration_sec
@@ -230,6 +215,7 @@ def complexity_score(bpm_values, duration_sec):
     local_var = local_variability(bpm_values)
     entropy_val = bpm_entropy(bpm_values)
     score = (
+        0.2 * std_time * 50 +
         0.2 * std_bpm +
         0.2 * change_rate * 10 +
         0.15 * jitter * 10 +
@@ -251,15 +237,16 @@ def bpm_entropy(bpm_values):
     return entropy(hist)
 
 def interpret_score(score):
+    td = translation(st.session_state.get("language", "en"))
     if score < 3:
-        return "🟢 Very Simple (Loop-like, Minimal Variation)"
+        return "🟢 " + td["very_simple"]
     elif score < 5:
-        return "🟢🟡 Simple Groove (Some Movement, Still Stable)"
+        return "🟢🟡 " + td["simple_groove"]
     elif score < 7:
-        return "🟡 Moderately Complex (Live Feel, Some Jitter)"
+        return "🟡 " + td["moderately_complex"]
     elif score < 9:
-        return "🟠 Complex (Dynamic & Syncopated, Humanized)"
+        return "🟠 " + td["complex"]
     elif score < 11:
-        return "🔴 Highly Complex (Frequent Tempo Changes, Rich Structure)"
+        return "🔴 " + td["highly_complex"]
     else:
-        return "🔴🔴 Ultra Complex (Experimental, Irregular, High Entropy)"
+        return "🔴🔴 " + td["ultra_complex"]

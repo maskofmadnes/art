@@ -49,7 +49,22 @@
     "intervals": "Intervals",
     "twod_plot": "2D plot",
     "threed_plot": "3D plot",
-    "onset_and_bpm": "Onsets and BPM"
+    "onset_and_bpm": "Onsets and BPM",
+    "blowout": "Replace blowout with mode",
+    "blowout_help": "Replace blowout values from up and down with mode in this percent",
+    "time_blowout": "Replace time blowout (second plot) with mode",
+    "time_blowout_help": "Replace time blowout (second plot) values from up and down with mode in this percent",
+    "time_intervals_between_onsets": "Time intervals between onsets",
+    "time_between_onsets": "Time between onsets",
+    "complexity_score": "Complexity score",
+    "three_plot": "Onsets, BPM, Time between onsets",
+    "onset": "Onset",
+    "very_simple": "Very Simple (Loop-like, Minimal Variation)",
+    "simple_groove": "Simple Groove (Some Movement, Still Stable)",
+    "moderately_complex": "Moderately Complex (Live Feel, Some Jitter)",
+    "complex": "Complex (Dynamic & Syncopated, Humanized)",
+    "highly_complex": "Highly Complex (Frequent Tempo Changes, Rich Structure)",
+    "ultra_complex": "Ultra Complex (Experimental, Irregular, High Entropy)" 
   },
   "ru": {
     "title": "ART",
@@ -101,6 +116,21 @@
     "intervals": "Интервалы",
     "twod_plot": "2D график",
     "threed_plot": "3D график",
-    "onset_and_bpm": "Удары и BPM"
+    "onset_and_bpm": "Удары и BPM",
+    "blowout": "Заменить выбросы на моду",
+    "blowout_help": "Заменить выбросы сверху и снизу на моду в указанных процентах",
+    "time_blowout": "Заменить временные выбросы (второй график) на моду",
+    "time_blowout_help": "Заменить значения временных выбросов (второй график) сверху и снизу на моду",
+    "time_intervals_between_onsets": "Временные интервалы между ударами",
+    "time_between_onsets": "Время между ударами",
+    "complexity_score": "Оценка сложности",
+    "three_plot": "Удары, BPM, время между ударамя",
+    "onset": "Удар",
+    "very_simple": "Очень просто (Похоже на цикл, Минимальные изменения)",
+    "simple_groove": "Простой грув (Некоторые движения, все еще стабильно)",
+    "moderately_complex": "Умеренно сложно (Живое ощущение, Небольшие колебания)",
+    "complex": "Сложно (Динамично и синкопировано, Очеловечено)",
+    "highly_complex": "Очень сложно (Частые изменения темпа, Богатая структура)",
+    "ultra_complex": "Ультра сложно (Экспериментально, Нерегулярно, Высокая энтропия)"
   }
 }

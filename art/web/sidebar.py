@@ -50,7 +50,7 @@ class Sidebar:
             value=True,
             help=self.t("twoh"),
             key="trim",
-        )
+        ) 
         st.sidebar.header(self.t("music"), divider="grey")
         st.sidebar.slider(
             self.t("volume"),
@@ -92,4 +92,20 @@ class Sidebar:
             help=self.t("tightness_help"),
             step=100.0,
             key="tightness",
+        )
+        st.sidebar.number_input(
+            self.t("blowout"),
+            value=0.0,
+            help=self.t("blowout_help"),
+            min_value=0.0,
+            step=1.0,
+            key="blowout"
+        )
+        st.sidebar.number_input(
+            self.t("time_blowout"),
+            value=0.0,
+            help=self.t("time_blowout_help"),
+            min_value=0.0,
+            step=1.0,
+            key="time_blowout"
         )
