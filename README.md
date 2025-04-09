@@ -3,7 +3,7 @@ ART provides a web interface to analyze dynamic BPM
 * 📈 Charts of BPM
 * ⚙️ A lot of parameters of BPM distribution
 * 📝 Table of time intervals with BPM
-* 📝 Table of time onsets with BPM
+* 📊 Table of time onsets with BPM
 
 ## Requirements
 * git
