@@ -7,7 +7,6 @@ st.set_page_config(
     page_title="ART",
     page_icon=":musical_note:",
     layout="wide",
-    initial_sidebar_state="expanded",
 )
 
 Sidebar().render()

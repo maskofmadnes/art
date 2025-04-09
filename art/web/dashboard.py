@@ -1,4 +1,3 @@
-from streamlit.runtime.state import SessionState
 from web.translation import translation
 from web.utils import extract_cover
 import tempo
@@ -7,7 +6,6 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from scipy.stats import entropy
-from sklearn.linear_model import LinearRegression
 
 
 class Dashboard:
@@ -106,7 +104,7 @@ class Dashboard:
             time_diffs = np.diff(onset_times)
             with st.container(border=True):
                 data = {
-                    "x": onset_times[1:],  # Начинаем с первого элемента (пропускаем 0)
+                    "x": onset_times[1:],  
                     "y": time_diffs,
                 }
                 fig = px.line(
