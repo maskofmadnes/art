@@ -5,6 +5,7 @@ import tempo
 import streamlit as st
 import numpy as np
 import plotly.express as px
+from scipy.stats import entropy
 
 
 class Dashboard:
@@ -96,7 +97,7 @@ class Dashboard:
             with col_average:
                 st.write(f"{self.t("average")} BPM: {round(np.mean(static_bpm), 2)}")
             with col_onset:
-                st.write(f"{self.t("first_onset")}: {round(dynamic_times[0], 3)}")
+                st.write(f"{self.t("first_onset")}: {str(round(dynamic_times[0], 3)).replace(".", ",")}")
             st.table(data)
         with general:
             # with st.container(border=True):
@@ -115,6 +116,11 @@ class Dashboard:
                 formatted_duration = f"{minutes}:{seconds:02}"
                 min_bpm = round(np.min(static_bpm), 2)
                 max_bpm = round(np.max(static_bpm), 2)
+                score = complexity_score(dynamic_tempo, segments[-1][1])
+                description = interpret_score(score)
+                st.metric("Complexity Score", score)
+                st.write(description)
+                st.divider()
                 st.write(f"{self.t("average")} BPM: {round(np.mean(static_bpm), 2)}")
                 st.divider()
                 st.write(f"{self.t("bpm_range")}: {min_bpm} -> {max_bpm}")
@@ -129,3 +135,48 @@ class Dashboard:
                 else:
                     st.info(self.t("no_track_cover"))
         neural_network.write("In development")
+
+def complexity_score(bpm_values, duration_sec):
+    bpm_values = np.array(bpm_values)
+    std_bpm = np.std(bpm_values)  
+    tempo_changes = np.sum(np.abs(np.diff(bpm_values)) > 3) 
+    change_rate = tempo_changes / duration_sec  
+    jitter = np.sum(np.diff(np.sign(np.diff(bpm_values))) != 0) / len(bpm_values)  
+    bpm_range = np.max(bpm_values) - np.min(bpm_values)  
+    acceleration = (bpm_values[-1] - bpm_values[0]) / duration_sec  
+    local_var = local_variability(bpm_values)  
+    entropy_val = bpm_entropy(bpm_values)  
+    score = (
+        0.25 * std_bpm +
+        0.2 * change_rate * 10 +
+        0.15 * jitter * 10 +
+        0.1 * bpm_range / 10 +
+        0.1 * abs(acceleration) +
+        0.1 * local_var +
+        0.1 * entropy_val * 10
+    )
+    return round(score, 2)
+
+def local_variability(bpm_values, window_size=5):
+    segments = len(bpm_values) // window_size
+    local_std = [np.std(bpm_values[i*window_size:(i+1)*window_size])
+                 for i in range(segments) if len(bpm_values[i*window_size:(i+1)*window_size]) > 1]
+    return np.mean(local_std) if local_std else 0
+
+def bpm_entropy(bpm_values):
+    hist, _ = np.histogram(bpm_values, bins=10, density=True)
+    return entropy(hist)
+
+def interpret_score(score):
+    if score < 3:
+        return "🟢 Very Simple (Loop-like, Minimal Variation)"
+    elif score < 5:
+        return "🟢🟡 Simple Groove (Some Movement, Still Stable)"
+    elif score < 7:
+        return "🟡 Moderately Complex (Live Feel, Some Jitter)"
+    elif score < 9:
+        return "🟠 Complex (Dynamic & Syncopated, Humanized)"
+    elif score < 11:
+        return "🔴 Highly Complex (Frequent Tempo Changes, Rich Structure)"
+    else:
+        return "🔴🔴 Ultra Complex (Experimental, Irregular, High Entropy)"
