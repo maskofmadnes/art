@@ -6,6 +6,7 @@ import streamlit as st
 import numpy as np
 import plotly.express as px
 from scipy.stats import entropy
+from sklearn.linear_model import LinearRegression
 
 
 class Dashboard:
@@ -28,12 +29,6 @@ class Dashboard:
                 ac_size=st.session_state.ac_size,
                 max_tempo=st.session_state.max_bpm,
             )
-            time_tempo = tempo.time_tempo(
-                audio,
-                dynamic_tempo=dynamic_tempo,
-                hop_length=st.session_state.hop_length
-            )
-            segments = tempo.segments(time_tempo, dynamic_tempo)
             static_bpm, dynamic_times = tempo.dynamic_times(
                 audio,
                 dynamic_tempo,
@@ -42,6 +37,12 @@ class Dashboard:
                 tightness=st.session_state.tightness,
                 trim=st.session_state.trim
             )
+            time_tempo = tempo.time_tempo(
+                audio,
+                dynamic_tempo=static_bpm,
+                hop_length=st.session_state.hop_length
+            )
+            segments = tempo.segments(time_tempo, static_bpm)
             dynamic_clicks = tempo.dynamic_clicks(
                 audio,
                 dynamic_times,
@@ -74,7 +75,9 @@ class Dashboard:
         classic, neural_network, general = st.tabs([self.t("classic"),self.t("neural_network"), self.t("overview")])
         with classic:
             with st.container(border=True):
-                x, y = time_tempo, dynamic_tempo
+                onset_bpm = match_bpm(dynamic_times, time_tempo, static_bpm)
+                # x, y = time_tempo, static_bpm
+                x, y = dynamic_times, onset_bpm
                 data = {
                     "x": x,
                     "y": y,
@@ -86,7 +89,7 @@ class Dashboard:
                     title=self.t("bpm_dynamic"),
                     labels={"x": self.t("time") + " (s)", "y": "BPM"},
                 )
-                fig.update_traces(line=dict(color="#d85791"))
+                # fig.update_traces(line=dict(color="#d85791"))
                 st.plotly_chart(fig)
             data = {self.t("start"): [], self.t("end"): [], "BPM": []}
             for start, end, bpm in segments:
@@ -134,20 +137,66 @@ class Dashboard:
                     st.image(cover_data)
                 else:
                     st.info(self.t("no_track_cover"))
-        neural_network.write("In development")
+        with neural_network:
+            duration_sec = segments[-1][1]
+            bpm_values = np.array(static_bpm)
+            std_bpm = np.std(bpm_values)
+            # tempo_changes = len(segments)
+            tempo_changes = np.sum(np.abs(np.diff(bpm_values)) > 3)
+            change_rate = tempo_changes / duration_sec
+            jitter = np.sum(np.diff(np.sign(np.diff(bpm_values))) != 0) / len(bpm_values)
+            bpm_range = np.max(bpm_values) - np.min(bpm_values)
+            acceleration = bpm_range / duration_sec
+            local_var = local_variability(bpm_values)
+            entropy_val = bpm_entropy(bpm_values)
+            rhythmic_variability = np.mean(np.abs(np.diff(bpm_values)))
+            tempo_jumps_threshold = 5  # Порог для скачков темпа
+            tempo_jumps = np.sum(np.abs(np.diff(bpm_values)) > tempo_jumps_threshold)
+            
+            stdk, stdc = 0.2 * std_bpm, std_bpm
+            crk, crc = 0.15 * change_rate * 10, change_rate
+            jk, jc = 0.15 * jitter * 10, jitter
+            brk, brc = 0.05 * bpm_range / 10, bpm_range
+            ak, ac = 0.1 * abs(acceleration), acceleration
+            lvk, lvc = 0.1 * local_var, local_var
+            evk, evc = 0.1 * entropy_val * 10, entropy_val
+            rvk, rvc = 0.15 * rhythmic_variability, rhythmic_variability
+            tjk, tjc = 0.05 * tempo_jumps, tempo_jumps
+            st.write("std_bpm", stdk, stdc)
+            st.write("change_rate", crk, crc)
+            st.write("jitter", jk, jc)
+            st.write("bpm_range", brk, brc)
+            st.write("acceleration", ak, ac)
+            st.write("local_ver", lvk, lvc)
+            st.write("entorpoy_val", evk, evc)
+            st.write("rhythmic_variability", rvk, rvc)
+            st.write("tempo_jumps", tjk, tjc)
+            st.metric("Scorek", stdk + crk + jk + brk + ak + lvk + evk + rvk + tjk)
+            st.metric("Scorec", stdc + crc + jc + brc + ac + lvc + evc + rvc + tjc)
+            st.write(len(time_tempo))
+            st.write(len(dynamic_times))
+            st.write(time_tempo)
+            st.write(dynamic_times)
+
+
+def match_bpm(onset_times, time_tempo, static_bpm):
+    onset_times = np.array(onset_times)
+    indices = np.searchsorted(time_tempo, onset_times, side='right') - 1
+    indices = np.clip(indices, 0, len(static_bpm) - 1)
+    return static_bpm[indices]
 
 def complexity_score(bpm_values, duration_sec):
     bpm_values = np.array(bpm_values)
-    std_bpm = np.std(bpm_values)  
-    tempo_changes = np.sum(np.abs(np.diff(bpm_values)) > 3) 
-    change_rate = tempo_changes / duration_sec  
-    jitter = np.sum(np.diff(np.sign(np.diff(bpm_values))) != 0) / len(bpm_values)  
-    bpm_range = np.max(bpm_values) - np.min(bpm_values)  
-    acceleration = (bpm_values[-1] - bpm_values[0]) / duration_sec  
-    local_var = local_variability(bpm_values)  
-    entropy_val = bpm_entropy(bpm_values)  
+    std_bpm = np.std(bpm_values)
+    tempo_changes = np.sum(np.abs(np.diff(bpm_values)) > 3)
+    change_rate = tempo_changes / duration_sec
+    jitter = np.sum(np.diff(np.sign(np.diff(bpm_values))) != 0) / len(bpm_values)
+    bpm_range = np.max(bpm_values) - np.min(bpm_values)
+    acceleration = (bpm_values[-1] - bpm_values[0]) / duration_sec
+    local_var = local_variability(bpm_values)
+    entropy_val = bpm_entropy(bpm_values)
     score = (
-        0.25 * std_bpm +
+        0.2 * std_bpm +
         0.2 * change_rate * 10 +
         0.15 * jitter * 10 +
         0.1 * bpm_range / 10 +
