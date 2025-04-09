@@ -3,10 +3,10 @@ import numpy as np
 import streamlit as st
 
 @st.cache_data
-def audio(path): 
+def audio(path):
     return librosa.load(path, sr=None)
-    
-    
+
+
 @st.cache_data
 def dynamic_tempo(
         audio,
@@ -27,43 +27,48 @@ def dynamic_tempo(
         ac_size=ac_size,
         max_tempo=max_tempo,
         aggregate=aggregate,
-    )   
-    
-    
+    )
+
+
 @st.cache_data
 def time_tempo(
-        audio, 
-        dynamic_tempo, 
+        audio,
+        dynamic_tempo,
         hop_length=512
     ):
     y, sr = audio
     return librosa.times_like(
-        dynamic_tempo, 
-        sr=sr, 
+        dynamic_tempo,
+        sr=sr,
         hop_length=hop_length
-    )   
-   
-@st.cache_data 
-def segments(time_tempo, dynamic_tempo):
-    segments = []
-    tempo_times = time_tempo
-    tempo_dynamic = dynamic_tempo
-    start = tempo_times[0]
-    curr_tempo = tempo_dynamic[0]
-    for time, tempo in zip(tempo_times[1:], tempo_dynamic[1:]):
+    )
+
+@st.cache_data
+def intervals(onset_bpm, onset_times):
+    intervals = []
+    start = onset_times[0]
+    curr_tempo = onset_bpm[0]
+    for time, tempo in zip(onset_times[1:], onset_bpm[1:]):
         if round(curr_tempo, 2) != round(tempo, 2):
-            segments += [[start, time, curr_tempo]]
+            intervals += [[start, time, curr_tempo]]
             start = time
             curr_tempo = tempo
-    segments += [[start, tempo_times[-1], curr_tempo]]
-    return segments   
-    
+    intervals += [[start, onset_times[-1], curr_tempo]]
+    return intervals
+
+@st.cache_data
+def onset_bpm(dynamic_bpm, onset_times, time_tempo):
+    onset_times = np.array(onset_times)
+    indices = np.searchsorted(time_tempo, onset_times, side='right') - 1
+    indices = np.clip(indices, 0, len(dynamic_bpm) - 1)
+    return dynamic_bpm[indices]
+
 @st.cache_data
 def music(
         audio,
         dynamic_clicks,
-        volume=20, 
-        click_freq=660.0, 
+        volume=20,
+        click_freq=660.0,
         click_duration=0.1,
     ):
     y, sr = audio
@@ -75,7 +80,7 @@ def music(
     if max_amplitude > 1.0:
         combined_audio = combined_audio / max_amplitude
     return combined_audio, sr
-    
+
 @st.cache_data
 def dynamic_clicks(
         audio,
@@ -93,9 +98,9 @@ def dynamic_clicks(
         click_duration=click_duration,
         length=len(y),
     )
-    
+
 @st.cache_data
-def dynamic_times(
+def onset_times(
         audio,
         dynamic_tempo,
         hop_length=512,
@@ -115,4 +120,3 @@ def dynamic_times(
         trim=trim,
         units=units,
     )
-

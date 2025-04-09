@@ -29,7 +29,7 @@ class Dashboard:
                 ac_size=st.session_state.ac_size,
                 max_tempo=st.session_state.max_bpm,
             )
-            static_bpm, dynamic_times = tempo.dynamic_times(
+            dynamic_bpm, onset_times = tempo.onset_times(
                 audio,
                 dynamic_tempo,
                 hop_length=st.session_state.hop_length,
@@ -39,13 +39,14 @@ class Dashboard:
             )
             time_tempo = tempo.time_tempo(
                 audio,
-                dynamic_tempo=static_bpm,
+                dynamic_tempo=dynamic_bpm,
                 hop_length=st.session_state.hop_length
             )
-            segments = tempo.segments(time_tempo, static_bpm)
+            onset_bpm = tempo.onset_bpm(dynamic_bpm, onset_times, time_tempo)
+            intervals = tempo.intervals(onset_bpm, onset_times)
             dynamic_clicks = tempo.dynamic_clicks(
                 audio,
-                dynamic_times,
+                onset_times,
                 hop_length=st.session_state.hop_length,
                 click_freq=st.session_state.click_freq,
                 click_duration=st.session_state.click_duration
@@ -75,9 +76,7 @@ class Dashboard:
         classic, neural_network, general = st.tabs([self.t("classic"),self.t("neural_network"), self.t("overview")])
         with classic:
             with st.container(border=True):
-                onset_bpm = match_bpm(dynamic_times, time_tempo, static_bpm)
-                # x, y = time_tempo, static_bpm
-                x, y = dynamic_times, onset_bpm
+                x, y = onset_times, onset_bpm
                 data = {
                     "x": x,
                     "y": y,
@@ -92,39 +91,39 @@ class Dashboard:
                 # fig.update_traces(line=dict(color="#d85791"))
                 st.plotly_chart(fig)
             data = {self.t("start"): [], self.t("end"): [], "BPM": []}
-            for start, end, bpm in segments:
+            for start, end, bpm in intervals:
                 data[self.t("start")] += [f"{start:.3f}".replace(".", ",")]
                 data[self.t("end")] += [f"{end:.3f}".replace(".", ",")]
                 data["BPM"] += [str(round(bpm, 2))]
             col_average, col_onset = st.columns(2, border=True)
             with col_average:
-                st.write(f"{self.t("average")} BPM: {round(np.mean(static_bpm), 2)}")
+                st.write(f"{self.t("average")} BPM: {round(np.mean(dynamic_bpm), 2)}")
             with col_onset:
-                st.write(f"{self.t("first_onset")}: {str(round(dynamic_times[0], 3)).replace(".", ",")}")
+                st.write(f"{self.t("first_onset")}: {str(round(onset_times[0], 3)).replace(".", ",")}")
             st.table(data)
         with general:
             # with st.container(border=True):
             col_info, col_image = st.columns(2, border=True)
             with col_info:
-                std_dev = np.std(static_bpm)
+                std_dev = np.std(dynamic_bpm)
                 if std_dev < 2:
                     rhythmic_variance = self.t("low")
                 elif std_dev < 10:
                     rhythmic_variance = self.t("moderate")
                 else:
                     rhythmic_variance = self.t("high")
-                duration_seconds = round(segments[-1][1], 3)
+                duration_seconds = round(intervals[-1][1], 3)
                 minutes = int(duration_seconds // 60)
                 seconds = int(duration_seconds % 60)
                 formatted_duration = f"{minutes}:{seconds:02}"
-                min_bpm = round(np.min(static_bpm), 2)
-                max_bpm = round(np.max(static_bpm), 2)
-                score = complexity_score(dynamic_tempo, segments[-1][1])
+                min_bpm = round(np.min(dynamic_bpm), 2)
+                max_bpm = round(np.max(dynamic_bpm), 2)
+                score = complexity_score(dynamic_bpm, intervals[-1][1])
                 description = interpret_score(score)
                 st.metric("Complexity Score", score)
                 st.write(description)
                 st.divider()
-                st.write(f"{self.t("average")} BPM: {round(np.mean(static_bpm), 2)}")
+                st.write(f"{self.t("average")} BPM: {round(np.mean(dynamic_bpm), 2)}")
                 st.divider()
                 st.write(f"{self.t("bpm_range")}: {min_bpm} -> {max_bpm}")
                 st.divider()
@@ -138,8 +137,8 @@ class Dashboard:
                 else:
                     st.info(self.t("no_track_cover"))
         with neural_network:
-            duration_sec = segments[-1][1]
-            bpm_values = np.array(static_bpm)
+            duration_sec = intervals[-1][1]
+            bpm_values = np.array(dynamic_bpm)
             std_bpm = np.std(bpm_values)
             # tempo_changes = len(segments)
             tempo_changes = np.sum(np.abs(np.diff(bpm_values)) > 3)
@@ -173,17 +172,7 @@ class Dashboard:
             st.write("tempo_jumps", tjk, tjc)
             st.metric("Scorek", stdk + crk + jk + brk + ak + lvk + evk + rvk + tjk)
             st.metric("Scorec", stdc + crc + jc + brc + ac + lvc + evc + rvc + tjc)
-            st.write(len(time_tempo))
-            st.write(len(dynamic_times))
-            st.write(time_tempo)
-            st.write(dynamic_times)
 
-
-def match_bpm(onset_times, time_tempo, static_bpm):
-    onset_times = np.array(onset_times)
-    indices = np.searchsorted(time_tempo, onset_times, side='right') - 1
-    indices = np.clip(indices, 0, len(static_bpm) - 1)
-    return static_bpm[indices]
 
 def complexity_score(bpm_values, duration_sec):
     bpm_values = np.array(bpm_values)

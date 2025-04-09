@@ -1,1 +1,1 @@
-from .tempo import audio, dynamic_tempo, time_tempo, segments, music, dynamic_clicks, dynamic_times
+from .tempo import audio, dynamic_tempo, time_tempo, music, dynamic_clicks, intervals, onset_bpm, onset_times
