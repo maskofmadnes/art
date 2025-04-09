@@ -5,6 +5,7 @@ import tempo
 import streamlit as st
 import numpy as np
 import plotly.express as px
+import plotly.graph_objects as go
 from scipy.stats import entropy
 from sklearn.linear_model import LinearRegression
 
@@ -15,7 +16,7 @@ class Dashboard:
 
     def t(self, key):
         return f"{self.td[key]}"
-
+        
     def render(self):
         st.title(self.t("title"))
         st.subheader(self.t("subtitle"))
@@ -73,8 +74,19 @@ class Dashboard:
                 key="upload"
             )
             st.audio(music_y, sample_rate=music_sr)
-        classic, neural_network, general = st.tabs([self.t("classic"),self.t("neural_network"), self.t("overview")])
-        with classic:
+        twod_plot, threed_plot, nn, intervals_tab, onset_and_bpm, general = st.tabs([
+            self.t("twod_plot"),
+            self.t("threed_plot"),
+            self.t("nn"), 
+            self.t("intervals"),
+            self.t("onset_and_bpm"),
+            self.t("overview")])
+        with twod_plot:
+            col_average, col_onset = st.columns(2, border=True)
+            with col_average:
+                st.write(f"{self.t("average")} BPM: {round(np.mean(dynamic_bpm), 2)}")
+            with col_onset:
+                st.write(f"{self.t("first_onset")}: {str(round(onset_times[0], 3)).replace(".", ",")}")
             with st.container(border=True):
                 x, y = onset_times, onset_bpm
                 data = {
@@ -90,19 +102,60 @@ class Dashboard:
                 )
                 # fig.update_traces(line=dict(color="#d85791"))
                 st.plotly_chart(fig)
+                
+            time_diffs = np.diff(onset_times)
+            with st.container(border=True):
+                data = {
+                    "x": onset_times[1:],  # Начинаем с первого элемента (пропускаем 0)
+                    "y": time_diffs,
+                }
+                fig = px.line(
+                    data,
+                    x="x",
+                    y="y",
+                    title="time_intervals_between_onsets",
+                    labels={"x": self.t("time") + " (s)", "y": "intervals_between_onsets" + " (s)"},
+                )
+                st.plotly_chart(fig) 
+        with threed_plot:
+            with st.container(border=True):
+                x = np.array(onset_times)
+                y = np.array(onset_bpm)
+                z = np.diff(x, prepend=x[0])  # разница между onset_times
+            
+                fig = go.Figure(data=[go.Scatter3d(
+                    x=x,
+                    y=y,
+                    z=z,
+                    mode='lines+markers',
+                    marker=dict(size=4, color=z, colorscale='Viridis'),
+                    line=dict(color='royalblue', width=2)
+                )])
+            
+                fig.update_layout(
+                    scene=dict(
+                        xaxis_title=self.t("time") + " (s)",
+                        yaxis_title="BPM",
+                        zaxis_title=self.t("intervals") + " (s)"
+                    ),
+                    title="bpm dynamic 3d", #self.t("bpm_dynamic_3d"),
+                    margin=dict(l=0, r=0, b=0, t=30)
+                )
+                st.plotly_chart(fig)
+        with intervals_tab:
             data = {self.t("start"): [], self.t("end"): [], "BPM": []}
             for start, end, bpm in intervals:
                 data[self.t("start")] += [f"{start:.3f}".replace(".", ",")]
                 data[self.t("end")] += [f"{end:.3f}".replace(".", ",")]
                 data["BPM"] += [str(round(bpm, 2))]
-            col_average, col_onset = st.columns(2, border=True)
-            with col_average:
-                st.write(f"{self.t("average")} BPM: {round(np.mean(dynamic_bpm), 2)}")
-            with col_onset:
-                st.write(f"{self.t("first_onset")}: {str(round(onset_times[0], 3)).replace(".", ",")}")
             st.table(data)
+        with onset_and_bpm:
+            onset_bpm_table = {"Onset (s)": [], "BPM": []}
+            for time, bpm in zip(onset_times, onset_bpm):
+                onset_bpm_table["Onset (s)"] += [str(round(time, 3)).replace(".", ",")]
+                onset_bpm_table["BPM"] += [str(round(bpm, 2))]
+            st.table(onset_bpm_table)
         with general:
-            # with st.container(border=True):
             col_info, col_image = st.columns(2, border=True)
             with col_info:
                 std_dev = np.std(dynamic_bpm)
@@ -112,10 +165,6 @@ class Dashboard:
                     rhythmic_variance = self.t("moderate")
                 else:
                     rhythmic_variance = self.t("high")
-                duration_seconds = round(intervals[-1][1], 3)
-                minutes = int(duration_seconds // 60)
-                seconds = int(duration_seconds % 60)
-                formatted_duration = f"{minutes}:{seconds:02}"
                 min_bpm = round(np.min(dynamic_bpm), 2)
                 max_bpm = round(np.max(dynamic_bpm), 2)
                 score = complexity_score(dynamic_bpm, intervals[-1][1])
@@ -128,15 +177,13 @@ class Dashboard:
                 st.write(f"{self.t("bpm_range")}: {min_bpm} -> {max_bpm}")
                 st.divider()
                 st.write(f"{self.t("rhythmic_variance")}: {rhythmic_variance}")
-                st.divider()
-                st.write(f"{self.t("duration")}: {formatted_duration}")
             with col_image:
                 cover_data = extract_cover(st.session_state.upload)
                 if cover_data:
                     st.image(cover_data)
                 else:
                     st.info(self.t("no_track_cover"))
-        with neural_network:
+        with nn:
             duration_sec = intervals[-1][1]
             bpm_values = np.array(dynamic_bpm)
             std_bpm = np.std(bpm_values)

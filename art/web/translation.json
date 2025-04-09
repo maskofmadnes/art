@@ -6,7 +6,7 @@
     "settings": "Settings",
     "parameters": "Parameters",
     "classic": "Classic algorithm",
-    "neural_network": "Neural network algorithm",
+    "nn": "Neural network",
     "overview": "General information",
     "choose_file": "Choose an audio file",
     "music": "Music",
@@ -45,7 +45,11 @@
     "low": "low",
     "moderate": "moderate",
     "high": "high",
-    "bpm_range": "BPM range"
+    "bpm_range": "BPM range",
+    "intervals": "Intervals",
+    "twod_plot": "2D plot",
+    "threed_plot": "3D plot",
+    "onset_and_bpm": "Onsets and BPM"
   },
   "ru": {
     "title": "ART",
@@ -54,7 +58,7 @@
     "settings": "Настройки",
     "parameters": "Параметры",
     "classic": "Классический алгоритм",
-    "neural_network": "Neural network algorithm",
+    "nn": "Нейронная сеть",
     "overview": "Общая информация",
     "choose_file": "Выберите аудио файл",
     "music": "Музыка",
@@ -93,6 +97,10 @@
     "low": "низкая",
     "moderate": "умеренная",
     "high": "высокая",
-    "bpm_range": "Диапазон BPM"
+    "bpm_range": "Диапазон BPM",
+    "intervals": "Интервалы",
+    "twod_plot": "2D график",
+    "threed_plot": "3D график",
+    "onset_and_bpm": "Удары и BPM"
   }
 }
