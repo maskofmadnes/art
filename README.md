@@ -23,6 +23,6 @@ make
 git clone https://github.com/kostya1F634/art.git
 cd art
 uv sync
-.\.venv\Scripts\streamlit.exe run .\art\app.py
+uv run streamlit run .\art\app.py
 ```
 ![app_image](https://github.com/user-attachments/assets/7be4d834-891b-43ae-a340-4a0f90b85a4c)
