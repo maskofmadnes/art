@@ -5,7 +5,7 @@ ART provides a web interface to analyze dynamic BPM
 * 📝 Table of time intervals with BPM
 * 📊 Table of time onsets with BPM
   
-![app_image](https://github.com/user-attachments/assets/7be4d834-891b-43ae-a340-4a0f90b85a4c)
+![image_app](https://github.com/user-attachments/assets/1a92dcd7-2fd7-40e8-8689-2e39293076ac)
 
 ## Requirements
 * git
