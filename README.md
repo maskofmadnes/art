@@ -4,6 +4,8 @@ ART provides a web interface to analyze dynamic BPM
 * ⚙️ A lot of parameters of BPM distribution
 * 📝 Table of time intervals with BPM
 * 📊 Table of time onsets with BPM
+  
+![app_image](https://github.com/user-attachments/assets/7be4d834-891b-43ae-a340-4a0f90b85a4c)
 
 ## Requirements
 * git
@@ -25,4 +27,3 @@ cd art
 uv sync
 uv run streamlit run .\art\app.py
 ```
-![app_image](https://github.com/user-attachments/assets/7be4d834-891b-43ae-a340-4a0f90b85a4c)
