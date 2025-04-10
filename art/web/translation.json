@@ -9,7 +9,7 @@
     "nn": "Neural network",
     "overview": "General information",
     "choose_file": "Choose an audio file",
-    "music": "Music",
+    "music": "Metronome",
     "two": "Trim Weak Beats",
     "twoh": "Trim leading/trailing beats with weak beats.",
     "start_bpm": "Start BPM",
@@ -73,7 +73,9 @@
     "mapping_bpm_beats": "Mapping BPM to beat onsets",
     "detecting_intervals": "Detecting tempo intervals",
     "generating_clicks": "Generating metronome clicks",
-    "mixing_audio": "Mixing original audio with metronome"      
+    "mixing_audio": "Mixing original audio with metronome",
+    "time_intervals_between_onsets_smooth": "Time intervals between beats (smooth)",
+    "window_size": "Window size (smooth plot)"
   },
   "ru": {
     "title": "ART",
@@ -85,7 +87,7 @@
     "nn": "Нейронная сеть",
     "overview": "Общая информация",
     "choose_file": "Выберите аудио файл",
-    "music": "Музыка",
+    "music": "Метроном",
     "two": "Отсечь слабые удары",
     "twoh": "Удаляет слабые начальные и конечные удары в треке.",
     "start_bpm": "Начальный BPM",
@@ -149,6 +151,8 @@
     "mapping_bpm_beats": "Сопоставление BPM с ударами",
     "detecting_intervals": "Обнаружение интервалов темпа",
     "generating_clicks": "Генерация кликов",
-    "mixing_audio": "Смешивание аудио с метрономом"
+    "mixing_audio": "Смешивание аудио с метрономом",
+    "time_intervals_between_onsets_smooth": "Временные интервалы между ударами (сглаженные)",
+    "window_size": "Размер окна (сглаженный график)"
   }
 }

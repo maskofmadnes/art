@@ -16,7 +16,7 @@ class Sidebar:
             self.t("select_language"),
             options=["en", "ru"],
             index=["en", "ru"].index(st.session_state.get("language", "en")),
-            key="language"
+            key="language",
         )
         if selected_language != st.session_state.language:
             st.rerun()
@@ -50,7 +50,7 @@ class Sidebar:
             value=True,
             help=self.t("twoh"),
             key="trim",
-        ) 
+        )
         st.sidebar.header(self.t("music"), divider="grey")
         st.sidebar.slider(
             self.t("volume"),
@@ -99,7 +99,7 @@ class Sidebar:
             help=self.t("blowout_help"),
             min_value=0.0,
             step=1.0,
-            key="blowout"
+            key="blowout",
         )
         st.sidebar.number_input(
             self.t("time_blowout"),
@@ -107,5 +107,13 @@ class Sidebar:
             help=self.t("time_blowout_help"),
             min_value=0.0,
             step=1.0,
-            key="time_blowout"
+            key="time_blowout",
+        )
+        st.sidebar.number_input(
+            self.t("window_size"),
+            value=5,
+            help="window size for smooth",
+            min_value=1,
+            step=1,
+            key="window_size",
         )

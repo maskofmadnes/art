@@ -3,10 +3,12 @@ from web.utils import extract_cover
 import tempo
 import streamlit as st
 import numpy as np
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from scipy.stats import entropy
 from scipy.stats import mode
+from scipy.signal import savgol_filter
 
 
 class Dashboard:
@@ -85,7 +87,7 @@ class Dashboard:
                     title=self.t("bpm_dynamic"),
                     labels={"x": self.t("time") + " (s)", "y": "BPM"},
                 )
-                # fig.update_traces(line=dict(color="#d85791"))
+                fig.update_traces(line=dict(color="#003399"))
                 st.plotly_chart(fig)
             with st.container(border=True):
                 data = {
@@ -102,12 +104,36 @@ class Dashboard:
                         "y": self.t("time_between_onsets") + " (s)",
                     },
                 )
+                fig.update_traces(line=dict(color="#003399"))
+                st.plotly_chart(fig)
+            with st.container(border=True):
+                smoothed_y = smooth_data(
+                    time_diffs, window_size=st.session_state.window_size
+                )
+                fig = px.line(
+                    x=onset_times[1:][len(onset_times[1:]) - len(smoothed_y) :],
+                    y=smoothed_y,
+                    title=self.t("time_intervals_between_onsets_smooth"),
+                    labels={
+                        "x": self.t("time") + " (s)",
+                        "y": self.t("time_between_onsets") + " (s)",
+                    },
+                )
+                fig.update_layout(
+                    xaxis=dict(showgrid=True),
+                    yaxis=dict(
+                        showgrid=True,
+                        range=[min(smoothed_y) - 0.1, max(smoothed_y) + 0.1],
+                    ),
+                    title=self.t("time_intervals_between_onsets_smooth"),
+                )
+                fig.update_traces(line=dict(color="#003399"))
                 st.plotly_chart(fig)
         with threed_plot:
             with st.container(border=True):
                 x = np.array(onset_times)
                 y = np.array(onset_bpm)
-                z = np.diff(x, prepend=x[0])  # разница между onset_times
+                z = np.diff(x, prepend=x[0])
 
                 fig = go.Figure(
                     data=[
@@ -305,3 +331,7 @@ def audio_processing():
         music_y,
         music_sr,
     )
+
+
+def smooth_data(data, window_size=5):
+    return np.convolve(data, np.ones(window_size) / window_size, mode="valid")
