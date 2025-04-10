@@ -65,7 +65,15 @@
     "complex": "Complex (Dynamic & Syncopated, Humanized)",
     "highly_complex": "Highly Complex (Frequent Tempo Changes, Rich Structure)",
     "ultra_complex": "Ultra Complex (Experimental, Irregular, High Entropy)",
-    "audio_clicks": "Audio file with clicks"
+    "audio_clicks": "Original audio file with a metronome",
+    "decoding_audio": "Decoding audio file",
+    "estimating_tempo": "Estimating dynamic tempo",
+    "detecting_beats": "Detecting beat onsets",
+    "generating_timeline": "Generating tempo timeline",
+    "mapping_bpm_beats": "Mapping BPM to beat onsets",
+    "detecting_intervals": "Detecting tempo intervals",
+    "generating_clicks": "Generating metronome clicks",
+    "mixing_audio": "Mixing original audio with metronome"      
   },
   "ru": {
     "title": "ART",
@@ -133,6 +141,14 @@
     "complex": "Сложно (Динамично и синкопировано, Очеловечено)",
     "highly_complex": "Очень сложно (Частые изменения темпа, Богатая структура)",
     "ultra_complex": "Ультра сложно (Экспериментально, Нерегулярно, Высокая энтропия)",
-    "audio_clicks": "Аудио файл с щелчками"
+    "audio_clicks": "Оригинальный аудио файл с метрономом",
+    "decoding_audio": "Декодирование аудио",
+    "estimating_tempo": "Оценка темпа",
+    "detecting_beats": "Обнаружение ударов",
+    "generating_timeline": "Создание временной линии",
+    "mapping_bpm_beats": "Сопоставление BPM с ударами",
+    "detecting_intervals": "Обнаружение интервалов темпа",
+    "generating_clicks": "Генерация кликов",
+    "mixing_audio": "Смешивание аудио с метрономом"
   }
 }

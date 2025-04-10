@@ -20,45 +20,14 @@ class Dashboard:
         st.title(self.t("title"))
         st.subheader(self.t("subtitle"))
         if st.session_state.get("upload", None) is not None:
-            audio = tempo.audio(st.session_state.upload)
-            dynamic_tempo = tempo.dynamic_tempo(
-                audio,
-                hop_length=st.session_state.hop_length,
-                start_bpm=st.session_state.start_bpm,
-                std_bpm=st.session_state.standard_bpm,
-                ac_size=st.session_state.ac_size,
-                max_tempo=st.session_state.max_bpm,
-            )
-            dynamic_bpm, onset_times = tempo.onset_times(
-                audio,
-                dynamic_tempo,
-                hop_length=st.session_state.hop_length,
-                start_bpm=st.session_state.start_bpm,
-                tightness=st.session_state.tightness,
-                trim=st.session_state.trim,
-            )
-            time_tempo = tempo.time_tempo(
-                audio, dynamic_tempo=dynamic_bpm, hop_length=st.session_state.hop_length
-            )
-            onset_bpm = tempo.onset_bpm(dynamic_bpm, onset_times, time_tempo)
-            onset_bpm = trim_middle(
-                onset_bpm, trim_percent=st.session_state.blowout / 100
-            )
-            intervals = tempo.intervals(onset_bpm, onset_times)
-            dynamic_clicks = tempo.dynamic_clicks(
-                audio,
+            (
+                dynamic_bpm,
                 onset_times,
-                hop_length=st.session_state.hop_length,
-                click_freq=st.session_state.click_freq,
-                click_duration=st.session_state.click_duration,
-            )
-            music_y, music_sr = tempo.music(
-                audio,
-                dynamic_clicks,
-                volume=st.session_state.volume,
-                click_freq=st.session_state.click_freq,
-                click_duration=st.session_state.click_duration,
-            )
+                onset_bpm,
+                intervals,
+                music_y,
+                music_sr,
+            ) = audio_processing()
         else:
             with st.container(border=True):
                 st.file_uploader(
@@ -191,7 +160,7 @@ class Dashboard:
                 min_bpm = round(np.min(dynamic_bpm), 2)
                 max_bpm = round(np.max(dynamic_bpm), 2)
                 description = interpret_score(score)
-                st.metric("Complexity Score", score)
+                st.metric(self.t("complexity_score"), score)
                 st.write(description)
                 st.divider()
                 st.write(f"{self.t('average')} BPM: {round(np.mean(dynamic_bpm), 2)}")
@@ -278,3 +247,61 @@ def interpret_score(score):
         return "🔴 " + td["highly_complex"]
     else:
         return "🔴🔴 " + td["ultra_complex"]
+
+
+def audio_processing():
+    t = translation(st.session_state.get("language", "en"))
+    pbar = st.progress(0, t["decoding_audio"])
+    audio = tempo.audio(st.session_state.upload)
+    pbar.progress(13, t["estimating_tempo"])
+    dynamic_tempo = tempo.dynamic_tempo(
+        audio,
+        hop_length=st.session_state.hop_length,
+        start_bpm=st.session_state.start_bpm,
+        std_bpm=st.session_state.standard_bpm,
+        ac_size=st.session_state.ac_size,
+        max_tempo=st.session_state.max_bpm,
+    )
+    pbar.progress(26, t["detecting_beats"])
+    dynamic_bpm, onset_times = tempo.onset_times(
+        audio,
+        dynamic_tempo,
+        hop_length=st.session_state.hop_length,
+        start_bpm=st.session_state.start_bpm,
+        tightness=st.session_state.tightness,
+        trim=st.session_state.trim,
+    )
+    pbar.progress(39, t["generating_timeline"])
+    time_tempo = tempo.time_tempo(
+        audio, dynamic_tempo=dynamic_bpm, hop_length=st.session_state.hop_length
+    )
+    pbar.progress(52, t["mapping_bpm_beats"])
+    onset_bpm = tempo.onset_bpm(dynamic_bpm, onset_times, time_tempo)
+    onset_bpm = trim_middle(onset_bpm, trim_percent=st.session_state.blowout / 100)
+    pbar.progress(65, t["detecting_intervals"])
+    intervals = tempo.intervals(onset_bpm, onset_times)
+    pbar.progress(78, t["generating_clicks"])
+    dynamic_clicks = tempo.dynamic_clicks(
+        audio,
+        onset_times,
+        hop_length=st.session_state.hop_length,
+        click_freq=st.session_state.click_freq,
+        click_duration=st.session_state.click_duration,
+    )
+    pbar.progress(91, t["mixing_audio"])
+    music_y, music_sr = tempo.music(
+        audio,
+        dynamic_clicks,
+        volume=st.session_state.volume,
+        click_freq=st.session_state.click_freq,
+        click_duration=st.session_state.click_duration,
+    )
+    pbar.progress(100, "")
+    return (
+        dynamic_bpm,
+        onset_times,
+        onset_bpm,
+        intervals,
+        music_y,
+        music_sr,
+    )
