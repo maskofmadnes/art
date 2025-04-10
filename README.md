@@ -27,3 +27,5 @@ cd art
 uv sync
 uv run streamlit run .\art\app.py
 ```
+### Remarks
+* The first run may be slow due to caching or something else from librosa and streamlit
