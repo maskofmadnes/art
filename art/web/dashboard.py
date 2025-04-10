@@ -35,63 +35,74 @@ class Dashboard:
                 hop_length=st.session_state.hop_length,
                 start_bpm=st.session_state.start_bpm,
                 tightness=st.session_state.tightness,
-                trim=st.session_state.trim
+                trim=st.session_state.trim,
             )
             time_tempo = tempo.time_tempo(
-                audio,
-                dynamic_tempo=dynamic_bpm,
-                hop_length=st.session_state.hop_length
+                audio, dynamic_tempo=dynamic_bpm, hop_length=st.session_state.hop_length
             )
             onset_bpm = tempo.onset_bpm(dynamic_bpm, onset_times, time_tempo)
-            onset_bpm = trim_middle(onset_bpm, trim_percent=st.session_state.blowout / 100)
+            onset_bpm = trim_middle(
+                onset_bpm, trim_percent=st.session_state.blowout / 100
+            )
             intervals = tempo.intervals(onset_bpm, onset_times)
             dynamic_clicks = tempo.dynamic_clicks(
                 audio,
                 onset_times,
                 hop_length=st.session_state.hop_length,
                 click_freq=st.session_state.click_freq,
-                click_duration=st.session_state.click_duration
+                click_duration=st.session_state.click_duration,
             )
             music_y, music_sr = tempo.music(
                 audio,
                 dynamic_clicks,
                 volume=st.session_state.volume,
                 click_freq=st.session_state.click_freq,
-                click_duration=st.session_state.click_duration
+                click_duration=st.session_state.click_duration,
             )
         else:
             with st.container(border=True):
                 st.file_uploader(
                     self.t("choose_file"),
                     type=["wav", "mp3", "flac", "ogg", "m4a", "wma", "aiff", "aif"],
-                    key="upload"
+                    key="upload",
                 )
             return
         with st.container(border=True):
             st.file_uploader(
                 self.t("choose_file"),
                 type=["wav", "mp3", "flac", "ogg", "m4a", "wma", "aiff", "aif"],
-                key="upload"
+                key="upload",
             )
+            st.write(self.t("audio_clicks"))
             st.audio(music_y, sample_rate=music_sr)
-        twod_plot, threed_plot, nn, intervals_tab, onset_and_bpm, general = st.tabs([
-            self.t("twod_plot"),
-            self.t("threed_plot"),
-            self.t("nn"),
-            self.t("intervals"),
-            self.t("onset_and_bpm"),
-            self.t("overview")])
+        twod_plot, threed_plot, nn, intervals_tab, onset_and_bpm, general = st.tabs(
+            [
+                self.t("twod_plot"),
+                self.t("threed_plot"),
+                self.t("nn"),
+                self.t("intervals"),
+                self.t("onset_and_bpm"),
+                self.t("overview"),
+            ]
+        )
         with twod_plot:
             time_diffs = np.diff(onset_times)
-            time_diffs = trim_middle(time_diffs, trim_percent=st.session_state.time_blowout / 100)
+            time_diffs = trim_middle(
+                time_diffs, trim_percent=st.session_state.time_blowout / 100
+            )
             score = complexity_score(dynamic_bpm, intervals[-1][1], time_diffs)
             col_average, col_onset, col_score = st.columns(3, border=True)
             with col_average:
-                st.metric(f"{self.t("average")} BPM", round(np.mean(dynamic_bpm), 2))
+                st.metric(f"{self.t('average')} BPM", round(np.mean(dynamic_bpm), 2))
             with col_onset:
-                st.metric(self.t("first_onset"), str(round(onset_times[0], 3)).replace(".", ","))
+                st.metric(
+                    self.t("first_onset"),
+                    str(round(onset_times[0], 3)).replace(".", ","),
+                )
             with col_score:
-                st.metric(self.t("complexity_score") + " " + interpret_score(score)[0], score)
+                st.metric(
+                    self.t("complexity_score") + " " + interpret_score(score)[0], score
+                )
             with st.container(border=True):
                 x, y = onset_times, onset_bpm
                 data = {
@@ -117,7 +128,10 @@ class Dashboard:
                     x="x",
                     y="y",
                     title=self.t("time_intervals_between_onsets"),
-                    labels={"x": self.t("time") + " (s)", "y": self.t("time_between_onsets") + " (s)"},
+                    labels={
+                        "x": self.t("time") + " (s)",
+                        "y": self.t("time_between_onsets") + " (s)",
+                    },
                 )
                 st.plotly_chart(fig)
         with threed_plot:
@@ -126,23 +140,27 @@ class Dashboard:
                 y = np.array(onset_bpm)
                 z = np.diff(x, prepend=x[0])  # разница между onset_times
 
-                fig = go.Figure(data=[go.Scatter3d(
-                    x=x,
-                    y=y,
-                    z=z,
-                    mode='lines+markers',
-                    marker=dict(size=4, color=z, colorscale='Viridis'),
-                    line=dict(color='royalblue', width=2)
-                )])
+                fig = go.Figure(
+                    data=[
+                        go.Scatter3d(
+                            x=x,
+                            y=y,
+                            z=z,
+                            mode="lines+markers",
+                            marker=dict(size=4, color=z, colorscale="Viridis"),
+                            line=dict(color="royalblue", width=2),
+                        )
+                    ]
+                )
 
                 fig.update_layout(
                     scene=dict(
                         xaxis_title=self.t("time") + " (s)",
                         yaxis_title="BPM",
-                        zaxis_title=self.t("intervals") + " (s)"
+                        zaxis_title=self.t("intervals") + " (s)",
                     ),
                     title=self.t("three_plot"),
-                    margin=dict(l=0, r=0, b=0, t=30)
+                    margin=dict(l=0, r=0, b=0, t=30),
                 )
                 st.plotly_chart(fig)
         with intervals_tab:
@@ -153,9 +171,11 @@ class Dashboard:
                 data["BPM"] += [str(round(bpm, 2))]
             st.table(data)
         with onset_and_bpm:
-            onset_bpm_table = {f"{self.t("onset")} (s)": [], "BPM": []}
+            onset_bpm_table = {f"{self.t('onset')} (s)": [], "BPM": []}
             for time, bpm in zip(onset_times, onset_bpm):
-                onset_bpm_table[f"{self.t("onset")} (s)"] += [str(round(time, 3)).replace(".", ",")]
+                onset_bpm_table[f"{self.t('onset')} (s)"] += [
+                    str(round(time, 3)).replace(".", ",")
+                ]
                 onset_bpm_table["BPM"] += [str(round(bpm, 2))]
             st.table(onset_bpm_table)
         with general:
@@ -174,11 +194,11 @@ class Dashboard:
                 st.metric("Complexity Score", score)
                 st.write(description)
                 st.divider()
-                st.write(f"{self.t("average")} BPM: {round(np.mean(dynamic_bpm), 2)}")
+                st.write(f"{self.t('average')} BPM: {round(np.mean(dynamic_bpm), 2)}")
                 st.divider()
-                st.write(f"{self.t("bpm_range")}: {min_bpm} -> {max_bpm}")
+                st.write(f"{self.t('bpm_range')}: {min_bpm} -> {max_bpm}")
                 st.divider()
-                st.write(f"{self.t("rhythmic_variance")}: {rhythmic_variance}")
+                st.write(f"{self.t('rhythmic_variance')}: {rhythmic_variance}")
             with col_image:
                 cover_data = extract_cover(st.session_state.upload)
                 if cover_data:
@@ -187,6 +207,7 @@ class Dashboard:
                     st.info(self.t("no_track_cover"))
         with nn:
             st.write("In development")
+
 
 def trim_middle(x, trim_percent=0.25):
     if trim_percent <= 0.0:
@@ -198,9 +219,10 @@ def trim_middle(x, trim_percent=0.25):
     if np.any(mask):
         most_common = mode(x[mask], keepdims=True).mode[0]
     else:
-        most_common = np.mean(x) 
+        most_common = np.mean(x)
     x[~mask] = most_common
     return x
+
 
 def complexity_score(bpm_values, duration_sec, time_diffs):
     bpm_values = np.array(bpm_values)
@@ -215,26 +237,32 @@ def complexity_score(bpm_values, duration_sec, time_diffs):
     local_var = local_variability(bpm_values)
     entropy_val = bpm_entropy(bpm_values)
     score = (
-        0.2 * std_time * 50 +
-        0.2 * std_bpm +
-        0.2 * change_rate * 10 +
-        0.15 * jitter * 10 +
-        0.1 * bpm_range / 10 +
-        0.1 * abs(acceleration) +
-        0.1 * local_var +
-        0.1 * entropy_val * 10
+        0.2 * std_time * 50
+        + 0.2 * std_bpm
+        + 0.2 * change_rate * 10
+        + 0.15 * jitter * 10
+        + 0.1 * bpm_range / 10
+        + 0.1 * abs(acceleration)
+        + 0.1 * local_var
+        + 0.1 * entropy_val * 10
     )
     return round(score, 2)
 
+
 def local_variability(bpm_values, window_size=5):
     segments = len(bpm_values) // window_size
-    local_std = [np.std(bpm_values[i*window_size:(i+1)*window_size])
-                 for i in range(segments) if len(bpm_values[i*window_size:(i+1)*window_size]) > 1]
+    local_std = [
+        np.std(bpm_values[i * window_size : (i + 1) * window_size])
+        for i in range(segments)
+        if len(bpm_values[i * window_size : (i + 1) * window_size]) > 1
+    ]
     return np.mean(local_std) if local_std else 0
+
 
 def bpm_entropy(bpm_values):
     hist, _ = np.histogram(bpm_values, bins=10, density=True)
     return entropy(hist)
+
 
 def interpret_score(score):
     td = translation(st.session_state.get("language", "en"))

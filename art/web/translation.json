@@ -64,7 +64,8 @@
     "moderately_complex": "Moderately Complex (Live Feel, Some Jitter)",
     "complex": "Complex (Dynamic & Syncopated, Humanized)",
     "highly_complex": "Highly Complex (Frequent Tempo Changes, Rich Structure)",
-    "ultra_complex": "Ultra Complex (Experimental, Irregular, High Entropy)" 
+    "ultra_complex": "Ultra Complex (Experimental, Irregular, High Entropy)",
+    "audio_clicks": "Audio file with clicks"
   },
   "ru": {
     "title": "ART",
@@ -131,6 +132,7 @@
     "moderately_complex": "Умеренно сложно (Живое ощущение, Небольшие колебания)",
     "complex": "Сложно (Динамично и синкопировано, Очеловечено)",
     "highly_complex": "Очень сложно (Частые изменения темпа, Богатая структура)",
-    "ultra_complex": "Ультра сложно (Экспериментально, Нерегулярно, Высокая энтропия)"
+    "ultra_complex": "Ультра сложно (Экспериментально, Нерегулярно, Высокая энтропия)",
+    "audio_clicks": "Аудио файл с щелчками"
   }
 }
