@@ -159,6 +159,7 @@ class Dashboard:
                 )
                 st.plotly_chart(fig)
         with intervals_tab:
+            st.text(timing_points(intervals))
             data = {self.t("start"): [], self.t("end"): [], "BPM": []}
             for start, end, bpm in intervals:
                 data[self.t("start")] += [f"{start:.3f}".replace(".", ",")]
@@ -166,6 +167,7 @@ class Dashboard:
                 data["BPM"] += [str(round(bpm, 2))]
             st.table(data)
         with onset_and_bpm:
+            st.text(beat_timing_points(onset_times, onset_bpm))
             onset_bpm_table = {f"{self.t('onset')} (s)": [], "BPM": []}
             for time, bpm in zip(onset_times, onset_bpm):
                 onset_bpm_table[f"{self.t('onset')} (s)"] += [
@@ -335,3 +337,22 @@ def audio_processing():
 
 def smooth_data(data, window_size=5):
     return np.convolve(data, np.ones(window_size) / window_size, mode="valid")
+
+
+def timing_points(intervals):
+    result = []
+    for interval in intervals:
+        start, end, bpm = interval
+        start_ms = int(start * 1000)
+        beat_length = 60000 / bpm
+        result.append(f"{start_ms},{beat_length},4,1,0,100,1,0\n")
+    return "\n".join(result)
+
+
+def beat_timing_points(beat_times, beat_bpm):
+    result = []
+    for time, bpm in zip(beat_times, beat_bpm):
+        start_ms = int(time * 1000)
+        beat_length = 60000 / bpm
+        result.append(f"{start_ms},{beat_length},4,1,0,100,1,0\n")
+    return "\n".join(result)
