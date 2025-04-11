@@ -36,7 +36,7 @@ uv run streamlit run .\art\app.py
 ### Important
 * this should be done before placing the objects
 * upload audio, adjust the parameters
-* open map in external editing, 
+* open map in external editing
 * paste the copied TimingPoints into the appropriate section
 * mapping
 ### Remarks
