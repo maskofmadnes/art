@@ -12,20 +12,24 @@ ART provides a web interface to analyze dynamic BPM
 * git
 * python 3.10-3.13 (not necessary because uv install python itself, I guess)
 * uv
-* make (Linux)
+* make (not necessary)
 ## Installation and Usage
 ### Linux
 ```shell
 git clone https://github.com/kostya1F634/art.git
 cd art
 uv sync
+# Usage
 make
+# or
+uv run streamlit run art/app.py
 ```
 ### Windows
 ```shell
 git clone https://github.com/kostya1F634/art.git
 cd art
 uv sync
+# Usage
 uv run streamlit run .\art\app.py
 ```
 ### Remarks
