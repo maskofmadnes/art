@@ -1,6 +1,7 @@
 from web.translation import translation
 from web.utils import extract_cover
 import tempo
+import pyperclip
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -159,8 +160,11 @@ class Dashboard:
                 )
                 st.plotly_chart(fig)
         with intervals_tab:
-            with st.expander("OSU TimingPoints"):
-                st.text(timing_points(intervals))
+            timing_points_string = timing_points(intervals)
+            with st.expander(self.t("intervals_format")):
+                st.text(timing_points_string)
+            if st.button(self.t("copy"), key="intervals_copy"):
+                pyperclip.copy(timing_points_string)
             data = {self.t("start"): [], self.t("end"): [], "BPM": []}
             for start, end, bpm in intervals:
                 data[self.t("start")] += [f"{start:.3f}".replace(".", ",")]
@@ -168,7 +172,11 @@ class Dashboard:
                 data["BPM"] += [str(round(bpm, 2))]
             st.table(data)
         with onset_and_bpm:
-            st.text(beat_timing_points(onset_times, onset_bpm))
+            beat_timing_points_string = beat_timing_points(onset_times, onset_bpm)
+            with st.expander(self.t("beats_format")):
+                st.text(beat_timing_points_string)
+            if st.button(self.t("copy"), key="beats_copy"):
+                pyperclip.copy(beat_timing_points_string)
             onset_bpm_table = {f"{self.t('onset')} (s)": [], "BPM": []}
             for time, bpm in zip(onset_times, onset_bpm):
                 onset_bpm_table[f"{self.t('onset')} (s)"] += [

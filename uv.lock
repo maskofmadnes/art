@@ -27,6 +27,7 @@ dependencies = [
     { name = "matplotlib" },
     { name = "mutagen" },
     { name = "plotly" },
+    { name = "pyperclip" },
     { name = "scipy" },
     { name = "streamlit" },
 ]
@@ -37,6 +38,7 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.10.1" },
     { name = "mutagen", specifier = ">=1.47.0" },
     { name = "plotly", specifier = ">=6.0.1" },
+    { name = "pyperclip", specifier = ">=1.9.0" },
     { name = "scipy", specifier = ">=1.15.2" },
     { name = "streamlit", specifier = ">=1.43.2" },
 ]
@@ -730,6 +732,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/8b/1a/3544f4f299a47911c
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1c/a7/c8a2d361bf89c0d9577c934ebb7421b25dc84bf3a8e3ac0a40aed9acc547/pyparsing-3.2.1-py3-none-any.whl", hash = "sha256:506ff4f4386c4cec0590ec19e6302d3aedb992fdc02c761e90416f158dacf8e1", size = 107716 },
 ]
+
+[[package]]
+name = "pyperclip"
+version = "1.9.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/30/23/2f0a3efc4d6a32f3b63cdff36cd398d9701d26cda58e3ab97ac79fb5e60d/pyperclip-1.9.0.tar.gz", hash = "sha256:b7de0142ddc81bfc5c7507eea19da920b92252b548b96186caf94a5e2527d310", size = 20961 }
 
 [[package]]
 name = "python-dateutil"

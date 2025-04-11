@@ -75,7 +75,11 @@
     "generating_clicks": "Generating metronome clicks",
     "mixing_audio": "Mixing original audio with metronome",
     "time_intervals_between_onsets_smooth": "Time intervals between beats (smooth)",
-    "window_size": "Window size (smooth plot)"
+    "window_size": "Window size (smooth plot)",
+    "intervals_format": "Intervals in OSU TimingPoints format",
+    "beats_format": "Beats in OSU TimingPoints format",
+    "copy": "Copy (TimingPoints)"
+
   },
   "ru": {
     "title": "ART",
@@ -153,6 +157,9 @@
     "generating_clicks": "Генерация кликов",
     "mixing_audio": "Смешивание аудио с метрономом",
     "time_intervals_between_onsets_smooth": "Временные интервалы между ударами (сглаженные)",
-    "window_size": "Размер окна (сглаженный график)"
+    "window_size": "Размер окна (сглаженный график)",
+    "intervals_format": "Интервалы в OSU TimingPoints формате",
+    "beats_format": "Удары в OSU TimingPoints формате",
+    "copy": "Копировать (TimingPoints)"
   }
 }
