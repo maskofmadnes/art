@@ -159,7 +159,8 @@ class Dashboard:
                 )
                 st.plotly_chart(fig)
         with intervals_tab:
-            st.text(timing_points(intervals))
+            with st.expander("OSU TimingPoints"):
+                st.text(timing_points(intervals))
             data = {self.t("start"): [], self.t("end"): [], "BPM": []}
             for start, end, bpm in intervals:
                 data[self.t("start")] += [f"{start:.3f}".replace(".", ",")]
@@ -345,7 +346,7 @@ def timing_points(intervals):
         start, end, bpm = interval
         start_ms = int(start * 1000)
         beat_length = 60000 / bpm
-        result.append(f"{start_ms},{beat_length},4,1,0,100,1,0\n")
+        result.append(f"{start_ms},{beat_length},4,1,0,100,1,0")
     return "\n".join(result)
 
 
@@ -354,5 +355,5 @@ def beat_timing_points(beat_times, beat_bpm):
     for time, bpm in zip(beat_times, beat_bpm):
         start_ms = int(time * 1000)
         beat_length = 60000 / bpm
-        result.append(f"{start_ms},{beat_length},4,1,0,100,1,0\n")
+        result.append(f"{start_ms},{beat_length},4,1,0,100,1,0")
     return "\n".join(result)
