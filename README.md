@@ -1,5 +1,6 @@
 # ART - 🎶 dynamic BPM analyzer
 ART provides a web interface to analyze dynamic BPM
+* ⏱️ BPM intervals in OSU TimingPoints format
 * 📈 Charts of BPM
 * ⚙️ A lot of parameters of BPM distribution
 * 📝 Table of time intervals with BPM
